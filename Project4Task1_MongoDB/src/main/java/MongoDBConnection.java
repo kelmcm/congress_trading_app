@@ -1,6 +1,6 @@
 /**
  * Project 4, Task 1
- * Cole Thomas, nhthomas
+ * Nicholas Thomas, nhthomas
  * Kelly McManus, kellymcm
  */
 
@@ -28,6 +28,10 @@ public class MongoDBConnection {
                     "ac-vmwvcoa-shard-00-02.efsllgj.mongodb.net:27017" +
                     "/cluster0?w=majority&retryWrites=true&tls=true&authMechanism=SCRAM-SHA-1");
 
+    /**
+     * Main driver method to read and write to MongoDB.
+     * @param args
+     */
     public static void main(String[] args) {
 
         // Create settings
@@ -59,9 +63,11 @@ public class MongoDBConnection {
 
         while(!userInput.equals("exit")) {
 
+            // Prompt user
             System.out.println("Enter a string (type 'exit' to close):");
             userInput = scanner.nextLine();
 
+            // If user enters exit, exit the application
             if(userInput.equals("exit")) {
                 System.exit(0);
             }
@@ -69,9 +75,11 @@ public class MongoDBConnection {
             // Create UserString and insert into collection
             UserString newString = new UserString(new ObjectId(), userInput);
             mdbc.insert(collection, newString);
+            System.out.println();
 
             // Read all strings in the collection
             mdbc.readAll(collection);
+            System.out.println();
 
         }
 
@@ -84,11 +92,9 @@ public class MongoDBConnection {
      * @param object Object to insert
      */
     public void insert(MongoCollection collection, Object object) {
-        // Insert a document
-        //
         try {
             InsertOneResult result = collection.insertOne(object);
-            System.out.printf("Success! Inserted document id: ", result.getInsertedId());
+            System.out.printf("Success! Inserted document id: %s\n", result.getInsertedId());
         } catch (MongoException me) {
             System.err.println("Unable to insert due to an error: " + me);
         }
@@ -101,6 +107,7 @@ public class MongoDBConnection {
      * @param collection Collection to read
      */
     public void readAll(MongoCollection collection) {
+        System.out.println("Reading all strings from the database:");
         MongoCursor iterator = collection.find().iterator();
         try {
             while(iterator.hasNext()) {

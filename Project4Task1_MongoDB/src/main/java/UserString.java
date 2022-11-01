@@ -1,10 +1,10 @@
-import org.bson.types.ObjectId;
-
 /**
  * Project 4, Task 1
- * Cole Thomas, nhthomas
+ * Nicholas Thomas, nhthomas
  * Kelly McManus, kellymcm
  */
+
+import org.bson.types.ObjectId;
 
 // Source: https://www.mongodb.com/docs/drivers/java/sync/v4.3/fundamentals/data-formats/document-data-format-pojo/
 public class UserString {
