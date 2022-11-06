@@ -1,8 +1,14 @@
-package project4task2.congresstradingwebservice;// name: Cole Thomas, Kelly McManus
-// andrew id: nhthomas, kellymcm
-// date: 2022.11.01
-// purpose: the purpose of this class is to provide an object for the JSON response from the QuiverQuant API
-// note: this is for both houses of congress
+/**
+ * Project 4, Task 2
+ * Nicholas Thomas, nhthomas
+ * Kelly McManus, kellymcm
+ *
+ * date: 2022.11.01
+ * purpose: the purpose of this class is to provide an object for the JSON response from the QuiverQuant API
+ * note: this is for both houses of congress
+ */
+
+package project4task2.congresstradingwebservice;
 
 import com.google.gson.Gson;
 

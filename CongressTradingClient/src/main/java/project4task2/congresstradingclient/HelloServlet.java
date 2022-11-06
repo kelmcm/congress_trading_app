@@ -26,7 +26,7 @@ public class HelloServlet extends HttpServlet {
 
         try {
             // GET wants us to pass the name on the URL line
-            URL url = new URL("http://localhost:8080/CongressTradingWebService-1.0-SNAPSHOT/api/" + ticker);
+            URL url = new URL("https://glacial-tor-22128.herokuapp.com/api/" + ticker);
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             // we are sending plain text
