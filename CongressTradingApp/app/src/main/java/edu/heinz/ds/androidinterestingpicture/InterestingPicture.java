@@ -6,9 +6,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,6 +19,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 
 public class InterestingPicture extends AppCompatActivity {
 
@@ -70,9 +74,14 @@ public class InterestingPicture extends AppCompatActivity {
 //        pictureView.invalidate();
 //    }
 
-    public void tradesReady(String whatever) {
-        TextView responseText = (TextView)findViewById(R.id.tradeResponseText);
-        responseText.setText(whatever);
+    public void tradesReady(List<CongressTrading> trades) {
+        RecyclerViewAdapter adapter;
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.tradeRecyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new RecyclerViewAdapter(this, trades);
+//        adapter.setClickListener(this);
+        recyclerView.setAdapter(adapter);
+
     }
 
 }

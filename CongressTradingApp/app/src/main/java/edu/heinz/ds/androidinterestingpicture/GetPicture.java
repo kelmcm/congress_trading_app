@@ -18,16 +18,22 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import androidx.annotation.RequiresApi;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 /*
  * This class provides capabilities to search for an image on Flickr.com given a search term.  The method "search" is the entry to the class.
@@ -44,7 +50,7 @@ public class GetPicture {
     InterestingPicture ip = null;   // for callback
     String searchTerm = null;       // search Flickr for this word
     Bitmap picture = null;          // returned from Flickr
-    String tradeResponseText = null;
+    List<CongressTrading> tradeHistory = null;
 
     // search( )
     // Parameters:
@@ -118,10 +124,10 @@ public class GetPicture {
         //    the background thread.
         // Implement this method to suit your needs
         private void doInBackground() {
-            tradeResponseText = getTickerTrades(searchTerm);
+            tradeHistory = getTickerTrades(searchTerm);
         }
 
-        public String getTickerTrades(String ticker){
+        public List<CongressTrading> getTickerTrades(String ticker){
 
             HttpURLConnection conn;
             int status = 0;
@@ -146,9 +152,20 @@ public class GetPicture {
                 // and not the body returned by GET
                 result.setResponseText(conn.getResponseMessage());
 
+                String responseBody = "";
+
                 if (status == 200) {
-                    String responseBody = getResponseBody(conn);
+                    responseBody = getResponseBody(conn);
                     result.setResponseText(responseBody);
+
+                    // Using the JSON simple library parse the string into a json object
+                    Gson gson = new Gson();
+
+                    // Get items into a collection
+                    // source: https://stackoverflow.com/questions/9598707/gson-throwing-expected-begin-object-but-was-begin-array
+                    Type collectionType = new TypeToken<ArrayList<CongressTrading>>(){}.getType();
+                    tradeHistory = gson.fromJson(responseBody, collectionType);
+
                 }
 
                 System.out.println(result.getResponseText());
@@ -163,7 +180,7 @@ public class GetPicture {
             } catch (Exception e) {
                 System.out.println("IO Exception thrown" + e);
             }
-            return result.getResponseText();
+            return tradeHistory;
         }
 
 
@@ -171,7 +188,7 @@ public class GetPicture {
         //    thread completes.
         // Implement this method to suit your needs
         public void onPostExecute() {
-            ip.tradesReady(tradeResponseText);
+            ip.tradesReady(tradeHistory);
         }
         /*
          * Search Flickr.com for the searchTerm argument, and return a Bitmap that can be put in an ImageView

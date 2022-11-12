@@ -22,9 +22,9 @@
         android:layout_height="wrap_content"
         />
 
-    <TextView
-        android:id="@+id/tradeResponseText"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/tradeRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="506dp"
-        android:text="" />
+        android:layout_height="match_parent" />
+
 </LinearLayout>
