@@ -61,4 +61,9 @@ public class TradeRequest {
         this.requestedAt = requestedAt;
     }
 
+    @Override
+    public String toString() {
+        return ticker;
+    }
+
 }

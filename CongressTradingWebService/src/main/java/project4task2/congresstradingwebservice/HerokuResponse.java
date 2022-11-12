@@ -29,4 +29,9 @@ public class HerokuResponse {
     public void setNumberOfRecords(int numberOfRecords) {
         this.numberOfRecords = numberOfRecords;
     }
+
+    public String toString() {
+        return String.valueOf(numberOfRecords);
+    }
+
 }

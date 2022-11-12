@@ -31,4 +31,9 @@ public class APIRequest {
     public void setId(ObjectId id) {
         this.id = id;
     }
+
+    @Override
+    public String toString() {
+        return String.valueOf(processTime);
+    }
 }
