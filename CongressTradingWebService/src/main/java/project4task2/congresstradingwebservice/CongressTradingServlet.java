@@ -163,7 +163,7 @@ public class CongressTradingServlet extends HttpServlet {
             // Read stored data in MongoDB to map of lists
             Map<String, List> mdbr = readAll();
 
-            // Calcualte TradeRequest analytics
+            // Calculate TradeRequest analytics
             Map<String, Integer> mapMobileDeviceCount = new HashMap<>();
             Map<String, Integer> mapTickers = new HashMap<>();
             Map<String, Integer> mapRequestMethod = new HashMap<>();
@@ -201,6 +201,7 @@ public class CongressTradingServlet extends HttpServlet {
             request.setAttribute("mapTickers", mapTickers.toString());
             request.setAttribute("mapRequestMethod", mapRequestMethod.toString());
             request.setAttribute("totalRequests", totalRequest);
+            request.setAttribute("tradeRequestLog", mdbr.get("TradeRequest"));
 
             // Get APIRequest data
             long apiResponseSum = 0;
@@ -217,6 +218,7 @@ public class CongressTradingServlet extends HttpServlet {
 
             // Set attribute for average API response time
             request.setAttribute("averageAPIResponseTime", apiResponseSum / apiResponseCount);
+            request.setAttribute("apiRequestLog", mdbr.get("APIRequest"));
 
             // Get HerokuResponse data
             long recordsSum = 0;
@@ -233,6 +235,7 @@ public class CongressTradingServlet extends HttpServlet {
 
             // Set attribute for average records
             request.setAttribute("averageRecords", recordsSum / recordsCount);
+            request.setAttribute("herokuResponseLog", mdbr.get("HerokuResponse"));
 
             // Create and forward to new view
             RequestDispatcher view = request.getRequestDispatcher("dashboard.jsp");
