@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="edu.heinz.ds.androidinterestingpicture">
+    package="edu.heinz.ds.project4task2">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <application
@@ -11,7 +11,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AndroidInterestingPicture">
         <activity
-            android:name=".InterestingPicture"
+            android:name="edu.heinz.ds.project4task2.InvestigateTrades"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -1,4 +1,4 @@
-package edu.heinz.ds.androidinterestingpicture;
+package edu.heinz.ds.project4task2;
 
 import org.junit.Test;
 

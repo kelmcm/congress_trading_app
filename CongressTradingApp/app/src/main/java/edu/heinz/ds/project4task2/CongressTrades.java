@@ -8,11 +8,11 @@
  * note: this is for both houses of congress
  */
 
-package edu.heinz.ds.androidinterestingpicture;
+package edu.heinz.ds.project4task2;
 
 import com.google.gson.Gson;
 
-public class CongressTrading {
+public class CongressTrades {
 
     String ReportDate;	//  Date the transaction was reported
     String TransactionDate;	// Date the transaction took place
@@ -23,7 +23,7 @@ public class CongressTrading {
     float Amount;	// Lower bound of transaction size ($). Congressional trades are reported as a range of values, this variable is the lower bound of that range
     String Range;	// Full transaction size range
 
-    public CongressTrading(String reportDate, String transactionDate, String ticker, String representative, String house, String transaction, float amount, String range) {
+    public CongressTrades(String reportDate, String transactionDate, String ticker, String representative, String house, String transaction, float amount, String range) {
         ReportDate = reportDate;
         TransactionDate = transactionDate;
         Ticker = ticker;

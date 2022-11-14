@@ -1,6 +1,10 @@
-// note this class was taken from: https://stackoverflow.com/questions/40584424/simple-android-recyclerview-example
+/**
+ * Project 4, Task 2
+ * Nicholas Thomas, nhthomas
+ * Kelly McManus, kellymcm
+ */
 
-package edu.heinz.ds.androidinterestingpicture;
+package edu.heinz.ds.project4task2;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -12,14 +16,20 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
+/**
+ * Class: RecyclerViewAdapter
+ *
+ * This class was taken from this StackOverflow post.
+ * Source: https://stackoverflow.com/questions/40584424/simple-android-recyclerview-example
+ */
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
 
-    private List<CongressTrading> mData;
+    private List<CongressTrades> mData;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
 
     // data is passed into the constructor
-    RecyclerViewAdapter(Context context, List<CongressTrading> data) {
+    RecyclerViewAdapter(Context context, List<CongressTrades> data) {
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
     }
@@ -34,7 +44,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     // binds the data to the TextView in each row
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        CongressTrading animal = mData.get(position);
+        CongressTrades animal = mData.get(position);
         holder.myTextView.setText(animal.toString());
     }
 
@@ -60,11 +70,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             if (mClickListener != null) mClickListener.onItemClick(view, getAdapterPosition());
         }
     }
-
-    // convenience method for getting data at click position
-//    String getItem(int id) {
-//        return mData.get(id);
-//    }
 
     // allows clicks events to be caught
     void setClickListener(ItemClickListener itemClickListener) {
