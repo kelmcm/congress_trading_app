@@ -1,3 +1,9 @@
+/**
+ * Project 4, Task 2
+ * Nicholas Thomas, nhthomas
+ * Kelly McManus, kellymcm
+ */
+
 package project4task2.congresstradingwebservice;
 
 import org.bson.types.ObjectId;
