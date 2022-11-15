@@ -9,30 +9,34 @@ package project4task2.congresstradingwebservice;
 import org.bson.types.ObjectId;
 import java.util.Date;
 
-public class TradeRequest {
+public class Log {
 
     private ObjectId id;
     private String mobileDevice;
-    private String requestMethod;
+    private String language;
     private String ticker;
     private Date requestedAt;
+    private int numberOfRecords;
+    private long processTime;
 
-    public TradeRequest() {}
+    public Log() {}
 
-    public TradeRequest(ObjectId id, String mobileDevice, String requestMethod, String ticker, Date requestedAt) {
+    public Log(ObjectId id, String mobileDevice, String language, String ticker, Date requestedAt, int numberOfRecords, long processTime) {
         this.id = id;
         this.mobileDevice = mobileDevice;
-        this.requestMethod = requestMethod;
+        this.language = language;
         this.ticker = ticker;
         this.requestedAt = requestedAt;
+        this.numberOfRecords = numberOfRecords;
+        this.processTime = processTime;
     }
 
-    public String getRequestMethod() {
-        return requestMethod;
+    public String getLanguage() {
+        return language;
     }
 
-    public void setRequestMethod(String requestMethod) {
-        this.requestMethod = requestMethod;
+    public void setLanguage(String language) {
+        this.language = language;
     }
 
     public ObjectId getId() {
@@ -65,6 +69,22 @@ public class TradeRequest {
 
     public void setRequestedAt(Date requestedAt) {
         this.requestedAt = requestedAt;
+    }
+
+    public int getNumberOfRecords() {
+        return numberOfRecords;
+    }
+
+    public void setNumberOfRecords(int numberOfRecords) {
+        this.numberOfRecords = numberOfRecords;
+    }
+
+    public long getProcessTime() {
+        return processTime;
+    }
+
+    public void setProcessTime(long processTime) {
+        this.processTime = processTime;
     }
 
     @Override

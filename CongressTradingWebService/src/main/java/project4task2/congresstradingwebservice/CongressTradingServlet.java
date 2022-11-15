@@ -49,9 +49,7 @@ public class CongressTradingServlet extends HttpServlet {
                     "/cluster0?w=majority&retryWrites=true&tls=true&authMechanism=SCRAM-SHA-1");
 
     // Instantiate MongoDB collection objects
-    MongoCollection<TradeRequest> collectionTradeRequest;
-    MongoCollection<APIRequest> collectionAPIRequest;
-    MongoCollection<HerokuResponse> collectionHerokuResponse;
+    MongoCollection<Log> collectionLogs;
 
     public void init() {
 
@@ -71,9 +69,7 @@ public class CongressTradingServlet extends HttpServlet {
         // Connect to database and collection
         MongoClient mongoClient = MongoClients.create(settings);
         MongoDatabase database = mongoClient.getDatabase("CongressTrading").withCodecRegistry(pojoCodecRegistry);
-        collectionTradeRequest = database.getCollection("TradeRequest", TradeRequest.class);
-        collectionAPIRequest = database.getCollection("APIRequest", APIRequest.class);
-        collectionHerokuResponse = database.getCollection("HerokuResponse", HerokuResponse.class);
+        collectionLogs = database.getCollection("logs", Log.class);
 
     }
 
@@ -94,13 +90,8 @@ public class CongressTradingServlet extends HttpServlet {
 
             // Extract trade request data
             String mobileDevice = request.getHeader("User-Agent");
-            String requestMethod = request.getHeader("Access-Control-Request-Method");
+            String language = request.getHeader("Accept-Language");
             Date requestedAt = new Date();
-
-            // Store trade request data in MongoDB for analysis
-            TradeRequest tradeRequest = new TradeRequest(new ObjectId(), mobileDevice, requestMethod, ticker, requestedAt);
-            CongressTradingServlet congressTradingServlet = new CongressTradingServlet();
-            congressTradingServlet.insert(collectionTradeRequest, tradeRequest);
 
             // Build QuiverQuantAPI URL to ping
             URL url = new URL("https://api.quiverquant.com/beta/historical/congresstrading/" + ticker);
@@ -126,10 +117,8 @@ public class CongressTradingServlet extends HttpServlet {
             Scanner s = new Scanner(responseStream).useDelimiter("\\A");
             String apiResponse = s.hasNext() ? s.next() : "";
 
-            // Store end time and calculate process time from API
+            // Store end time
             long endTime = System.currentTimeMillis();
-            APIRequest apiRequest = new APIRequest(new ObjectId(), endTime - startTime);
-            congressTradingServlet.insert(collectionAPIRequest, apiRequest);
 
             // Instantiate gson to parse JSON to POJO
             Gson gson = new Gson();
@@ -139,9 +128,12 @@ public class CongressTradingServlet extends HttpServlet {
             Type collectionType = new TypeToken<ArrayList<CongressTrade>>(){}.getType();
             List<CongressTrade> tradeHistory = gson.fromJson(apiResponse, collectionType);
 
-            // Store response value in MongoDB for analysis
-            HerokuResponse herokuResponse = new HerokuResponse(new ObjectId(), tradeHistory.size());
-            congressTradingServlet.insert(collectionHerokuResponse, herokuResponse);
+
+            // Store trade request data in MongoDB for analysis
+            CongressTradingServlet congressTradingServlet = new CongressTradingServlet();
+            Log log = new Log(new ObjectId(), mobileDevice, language, ticker, requestedAt, tradeHistory.size(), endTime - startTime);
+            congressTradingServlet.insert(collectionLogs, log);
+
 
             // Print API response items to console
             for(int i = 0; i < tradeHistory.size(); i++) {
@@ -161,81 +153,60 @@ public class CongressTradingServlet extends HttpServlet {
         } else if(request.getServletPath().contains("/dashboard")) {
 
             // Read stored data in MongoDB to map of lists
-            Map<String, List> mdbr = readAll();
+//            Map<String, List> mdbr = readAll();
+            List<Log> logs = readAll();
 
             // Calculate TradeRequest analytics
             Map<String, Integer> mapMobileDeviceCount = new HashMap<>();
             Map<String, Integer> mapTickers = new HashMap<>();
-            Map<String, Integer> mapRequestMethod = new HashMap<>();
-            int totalRequest = mdbr.get("TradeRequest").size();
+            Map<String, Integer> mapLanguage = new HashMap<>();
+            int totalRequest = logs.size();
+            long apiResponseSum = 0;
+            int apiResponseCount = 0;
+            long recordsSum = 0;
+            int recordsCount = 0;
 
             // For each trade request
-            for (Object object : mdbr.get("TradeRequest")) {
-                TradeRequest tradeRequest = (TradeRequest) object;
-
+            for (Log l : logs) {
                 // Count mobile devices
-                if(mapMobileDeviceCount.containsKey(tradeRequest.getMobileDevice())) {
-                    mapMobileDeviceCount.put(tradeRequest.getMobileDevice(), mapMobileDeviceCount.get(tradeRequest.getMobileDevice()) + 1);
+                if(mapMobileDeviceCount.containsKey(l.getMobileDevice())) {
+                    mapMobileDeviceCount.put(l.getMobileDevice(), mapMobileDeviceCount.get(l.getMobileDevice()) + 1);
                 } else {
-                    mapMobileDeviceCount.put(tradeRequest.getMobileDevice(), 1);
+                    mapMobileDeviceCount.put(l.getMobileDevice(), 1);
                 }
 
                 // Count tickers
-                if(mapTickers.containsKey(tradeRequest.getTicker())) {
-                    mapTickers.put(tradeRequest.getTicker(), mapTickers.get(tradeRequest.getTicker()) + 1);
+                if(mapTickers.containsKey(l.getTicker())) {
+                    mapTickers.put(l.getTicker(), mapTickers.get(l.getTicker()) + 1);
                 } else {
-                    mapTickers.put(tradeRequest.getTicker(), 1);
+                    mapTickers.put(l.getTicker(), 1);
                 }
 
-                // Count request methods
-                if(mapRequestMethod.containsKey(tradeRequest.getRequestMethod())) {
-                    mapRequestMethod.put(tradeRequest.getRequestMethod(), mapRequestMethod.get(tradeRequest.getRequestMethod()) + 1);
+                // Count language
+                if(mapLanguage.containsKey(l.getLanguage())) {
+                    mapLanguage.put(l.getLanguage(), mapLanguage.get(l.getLanguage()) + 1);
                 } else {
-                    mapRequestMethod.put(tradeRequest.getRequestMethod(), 1);
+                    mapLanguage.put(l.getLanguage(), 1);
                 }
+
+                // Sum processing time
+                apiResponseSum += l.getProcessTime();
+                apiResponseCount++;
+
+                // Sum all records
+                recordsSum += l.getNumberOfRecords();
+                recordsCount++;
 
             }
 
             // Set attributes back to request
-            request.setAttribute("mapMobileDevice", mapMobileDeviceCount.toString());
-            request.setAttribute("mapTickers", mapTickers.toString());
-            request.setAttribute("mapRequestMethod", mapRequestMethod.toString());
+            request.setAttribute("mapMobileDevice", mapMobileDeviceCount);
+            request.setAttribute("mapTickers", mapTickers);
+            request.setAttribute("mapLanguage", mapLanguage);
             request.setAttribute("totalRequests", totalRequest);
-            request.setAttribute("tradeRequestLog", mdbr.get("TradeRequest"));
-
-            // Get APIRequest data
-            long apiResponseSum = 0;
-            int apiResponseCount = 0;
-
-            // For each APIRequest
-            for (Object object : mdbr.get("APIRequest")) {
-                APIRequest apiRequest = (APIRequest) object;
-
-                // Sum processing time
-                apiResponseSum += apiRequest.getProcessTime();
-                apiResponseCount++;
-            }
-
-            // Set attribute for average API response time
             request.setAttribute("averageAPIResponseTime", apiResponseSum / apiResponseCount);
-            request.setAttribute("apiRequestLog", mdbr.get("APIRequest"));
-
-            // Get HerokuResponse data
-            long recordsSum = 0;
-            int recordsCount = 0;
-
-            // For each Heroku Response
-            for (Object object : mdbr.get("HerokuResponse")) {
-                HerokuResponse herokuResponse = (HerokuResponse) object;
-
-                // Sum all records
-                recordsSum += herokuResponse.getNumberOfRecords();
-                recordsCount++;
-            }
-
-            // Set attribute for average records
             request.setAttribute("averageRecords", recordsSum / recordsCount);
-            request.setAttribute("herokuResponseLog", mdbr.get("HerokuResponse"));
+            request.setAttribute("logs", logs);
 
             // Create and forward to new view
             RequestDispatcher view = request.getRequestDispatcher("dashboard.jsp");
@@ -273,18 +244,13 @@ public class CongressTradingServlet extends HttpServlet {
      * Source: https://www.mongodb.com/docs/drivers/java/sync/v4.3/usage-examples/find/
      * Source: https://www.mongodb.com/docs/drivers/java/sync/v4.3/fundamentals/data-formats/document-data-format-pojo/
      */
-    public Map<String, List> readAll() {
+    public List<Log> readAll() {
 
-        List<TradeRequest> docsTradingRequest = collectionTradeRequest.find(new Document(), TradeRequest.class).into(new ArrayList<TradeRequest>());
-        List<APIRequest> docsAPIRequest = collectionAPIRequest.find(new Document(), APIRequest.class).into(new ArrayList<APIRequest>());
-        List<HerokuResponse> docsHerokuResponse = collectionHerokuResponse.find(new Document(), HerokuResponse.class).into(new ArrayList<HerokuResponse>());
+        List<Log> logs = collectionLogs.find(new Document(), Log.class).into(new ArrayList<Log>());
 
         Map<String, List> map = new HashMap();
-        map.put("TradeRequest", docsTradingRequest);
-        map.put("APIRequest", docsAPIRequest);
-        map.put("HerokuResponse", docsHerokuResponse);
 
-        return map;
+        return logs;
     }
 
     public void getTickerResponse(HttpServletRequest request, HttpServletResponse response) {
