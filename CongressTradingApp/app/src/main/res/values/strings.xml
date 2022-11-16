@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AndroidInterestingPicture</string>
-    <string name="hello">Enter a stock ticker (ex: AAPL).</string>
+    <string name="app_name">Congress Stock Trading Intelligence</string>
+    <string name="hello">Enter a stock ticker to see congressional trades (ex: AAPL).</string>
     <string name="action_settings">Action</string>
 </resources>

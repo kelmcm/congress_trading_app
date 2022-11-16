@@ -2,11 +2,16 @@
  * Project 4, Task 2
  * Nicholas Thomas, nhthomas
  * Kelly McManus, kellymcm
+ *
+ * date: 2022.11.01
+ * purpose: this class performs the api operations and interacts with heroku web service
  */
 
 package edu.heinz.ds.project4task2;
 
 import android.app.Activity;
+import android.widget.TextView;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -130,7 +135,7 @@ public class GetTrades {
 
                 }
 
-                System.out.println(result.getResponseText());
+                System.out.println("getting result body: " + result.getResponseText());
 
                 conn.disconnect();
             }

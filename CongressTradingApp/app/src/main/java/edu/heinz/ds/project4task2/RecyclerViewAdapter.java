@@ -2,6 +2,10 @@
  * Project 4, Task 2
  * Nicholas Thomas, nhthomas
  * Kelly McManus, kellymcm
+ *
+ * date: 2022.11.01
+ * purpose: this class, while largely taken from stack overflow,
+ * sets up a recycler view to display a list of trades based on user input
  */
 
 package edu.heinz.ds.project4task2;
@@ -44,8 +48,18 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     // binds the data to the TextView in each row
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        CongressTrades animal = mData.get(position);
-        holder.myTextView.setText(animal.toString());
+        CongressTrades tradeFact = mData.get(position);
+
+        // format string for view
+        String reportString = "";
+        reportString += "House: " + tradeFact.getHouse() + "\n";
+        reportString += "Congressperson Name: " + tradeFact.getRepresentative() + "\n";
+        reportString += "Trade Size: " + tradeFact.getRange() + "\n";
+        reportString += "Trade Side: " + tradeFact.getTransaction() + "\n";
+        reportString += "Trade Date: " + tradeFact.getTransactionDate();
+
+        // set sting for view
+        holder.myTextView.setText(reportString.toString());
     }
 
     // total number of rows
@@ -61,7 +75,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
         ViewHolder(View itemView) {
             super(itemView);
-            myTextView = itemView.findViewById(R.id.tvAnimalName);
+            myTextView = itemView.findViewById(R.id.congressTradeFactView);
             itemView.setOnClickListener(this);
         }
 
