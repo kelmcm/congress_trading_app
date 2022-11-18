@@ -128,16 +128,22 @@ public class GetTrades {
 
                 if (status == 200) {
                     responseBody = getResponseBody(conn);
-                    result.setResponseText(responseBody);
 
-                    // Using the JSON simple library parse the string into a json object
-                    Gson gson = new Gson();
 
-                    // Get items into a collection
-                    // source: https://stackoverflow.com/questions/9598707/gson-throwing-expected-begin-object-but-was-begin-array
-                    Type collectionType = new TypeToken<ArrayList<CongressTrades>>(){}.getType();
-                    tradeHistory = gson.fromJson(responseBody, collectionType);
+                    if (responseBody.contains("error")) {
+                        error = responseBody;
+                    } else {
 
+                        result.setResponseText(responseBody);
+
+                        // Using the JSON simple library parse the string into a json object
+                        Gson gson = new Gson();
+
+                        // Get items into a collection
+                        // source: https://stackoverflow.com/questions/9598707/gson-throwing-expected-begin-object-but-was-begin-array
+                        Type collectionType = new TypeToken<ArrayList<CongressTrades>>(){}.getType();
+                        tradeHistory = gson.fromJson(responseBody, collectionType);
+                    }
                 }
 
                 System.out.println("getting result body: " + result.getResponseText());
