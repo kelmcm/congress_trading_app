@@ -79,7 +79,7 @@ public class CongressTradingServlet extends HttpServlet {
      * @param response
      * @throws IOException
      */
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void doGet(HttpServletRequest request, HttpServletResponse response) {
 
         if(request.getServletPath().contains("/api")) {
 
@@ -88,66 +88,76 @@ public class CongressTradingServlet extends HttpServlet {
             String[] pathInfoSplit = pathInfo.split("/");
             String ticker = pathInfoSplit[pathInfoSplit.length -1];
 
-            // Extract trade request data
-            String mobileDevice = request.getHeader("User-Agent");
-            String language = request.getHeader("Accept-Language");
-            Date requestedAt = new Date();
+            // catching invalid mobile user app input ... tickers should be alphabet only
+            if ((ticker != null) && (!ticker.equals("")) && (ticker.matches("^[a-zA-Z]*$"))) {
 
-            // Build QuiverQuantAPI URL to ping
-            URL url = new URL("https://api.quiverquant.com/beta/historical/congresstrading/" + ticker);
+                // Extract trade request data
+                String mobileDevice = request.getHeader("User-Agent");
+                String language = request.getHeader("Accept-Language");
+                Date requestedAt = new Date();
 
-            // Create HTTP Connection
-            HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
-            httpConn.setRequestMethod("GET");
+                try {
+                    // Build QuiverQuantAPI URL to ping
+                    // https://api.quiverquant.com/beta/historical/congresstrading/
+                    URL url = new URL("https://api.quiverquant.com/beta/historical/congresstrading/" + ticker);
 
-            // Set QuiverQuantAPI properties and API key
-            httpConn.setRequestProperty("accept", "application/json");
-            httpConn.setRequestProperty("X-CSRFToken", "TyTJwjuEC7VV7mOqZ622haRaaUr0x0Ng4nrwSRFKQs7vdoBcJlK9qjAS69ghzhFu");
-            httpConn.setRequestProperty("Authorization", "Token " + System.getenv("QuiverQuantAPIKey"));
+                    // Create HTTP Connection
+                    HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+                    httpConn.setRequestMethod("GET");
 
-            // Store start time
-            long startTime = System.currentTimeMillis();
+                    // Set QuiverQuantAPI properties and API key
+                    httpConn.setRequestProperty("accept", "application/json");
+                    httpConn.setRequestProperty("X-CSRFToken", "TyTJwjuEC7VV7mOqZ622haRaaUr0x0Ng4nrwSRFKQs7vdoBcJlK9qjAS69ghzhFu");
+                    httpConn.setRequestProperty("Authorization", "Token " + System.getenv("QuiverQuantAPIKey"));
 
-            // If response is 200, get input stream, else get error stream
-            InputStream responseStream = httpConn.getResponseCode() / 100 == 2
-                    ? httpConn.getInputStream()
-                    : httpConn.getErrorStream();
+                    // Store start time
+                    long startTime = System.currentTimeMillis();
 
-            // Read response stream
-            Scanner s = new Scanner(responseStream).useDelimiter("\\A");
-            String apiResponse = s.hasNext() ? s.next() : "";
+                    System.out.println(httpConn.getResponseCode());
 
-            // Store end time
-            long endTime = System.currentTimeMillis();
-
-            // Instantiate gson to parse JSON to POJO
-            Gson gson = new Gson();
-
-            // Extract CongressTrading objects into list
-            // source: https://stackoverflow.com/questions/9598707/gson-throwing-expected-begin-object-but-was-begin-array
-            Type collectionType = new TypeToken<ArrayList<CongressTrade>>(){}.getType();
-            List<CongressTrade> tradeHistory = gson.fromJson(apiResponse, collectionType);
+                    // API pull source 1: https://www.scrapingbee.com/curl-converter/java/
+                    // API pull source 2: https://api.quiverquant.com/docs/
+                    // If response is 200, get input stream, else get error stream
+                    InputStream responseStream = httpConn.getResponseCode() / 100 == 2
+                            ? httpConn.getInputStream()
+                            : httpConn.getErrorStream();
 
 
-            // Store trade request data in MongoDB for analysis
-            CongressTradingServlet congressTradingServlet = new CongressTradingServlet();
-            Log log = new Log(new ObjectId(), mobileDevice, language, ticker, requestedAt, tradeHistory.size(), endTime - startTime);
-            congressTradingServlet.insert(collectionLogs, log);
+                    // Read response stream
+                    Scanner s = new Scanner(responseStream).useDelimiter("\\A");
+                    String apiResponse = s.hasNext() ? s.next() : "";
 
+                    // Store end time
+                    long endTime = System.currentTimeMillis();
 
-            // Print API response items to console
-            for(int i = 0; i < tradeHistory.size(); i++) {
-                CongressTrade tradeResponse = tradeHistory.get(i);
-                System.out.printf("%-20s %-30s %-8s \t %-28s of %-6s on %-10s\n", tradeResponse.getHouse(), tradeResponse.getRepresentative(), tradeResponse.getTransaction(), tradeResponse.getRange(), tradeResponse.getTicker(), tradeResponse.getTransactionDate());
+                    // Instantiate gson to parse JSON to POJO
+                    Gson gson = new Gson();
+
+                    // Extract CongressTrading objects into list
+                    // source: https://stackoverflow.com/questions/9598707/gson-throwing-expected-begin-object-but-was-begin-array
+                    Type collectionType = new TypeToken<ArrayList<CongressTrade>>(){}.getType();
+                    List<CongressTrade> tradeHistory = gson.fromJson(apiResponse, collectionType);
+
+                    // Store trade request data in MongoDB for analysis
+                    CongressTradingServlet congressTradingServlet = new CongressTradingServlet();
+                    Log log = new Log(new ObjectId(), mobileDevice, language, ticker, requestedAt, tradeHistory.size(), endTime - startTime);
+                    congressTradingServlet.insert(collectionLogs, log);
+
+                    // Print API response items to console
+                    for(int i = 0; i < tradeHistory.size(); i++) {
+                        CongressTrade tradeResponse = tradeHistory.get(i);
+                        System.out.printf("%-20s %-30s %-8s \t %-28s of %-6s on %-10s\n", tradeResponse.getHouse(), tradeResponse.getRepresentative(), tradeResponse.getTransaction(), tradeResponse.getRange(), tradeResponse.getTicker(), tradeResponse.getTransactionDate());
+                    }
+
+                    writeToClient(response, tradeHistory);
+
+                } catch (IOException e) {
+                    writeToClient(response, "{\"error\":\"QuiverQuantAPI unavailable. Try again soon.\"}");
+                }
+
+            } else { // display error for user if invalid input is entered
+                writeToClient(response, "{\"error\":\"Ticker input is incorrect\"}");
             }
-
-            // Write web service response back to Client
-            // Source: https://www.baeldung.com/servlet-json-response
-            PrintWriter out = response.getWriter();
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            out.print(tradeHistory);
-            out.flush();
 
         // If dashboard URL, calculate analytics and display dashboard
         } else if(request.getServletPath().contains("/dashboard")) {
@@ -214,6 +224,8 @@ public class CongressTradingServlet extends HttpServlet {
                 view.forward(request, response);
             } catch (ServletException e) {
                 throw new RuntimeException(e);
+            } catch (IOException e) {
+                System.out.println("Error forwarding to next view.");
             }
         }
 
@@ -253,9 +265,18 @@ public class CongressTradingServlet extends HttpServlet {
         return logs;
     }
 
-    public void getTickerResponse(HttpServletRequest request, HttpServletResponse response) {
-
-
+    public void writeToClient(HttpServletResponse response, Object message) {
+        try {
+            // Write web service response back to Client
+            // Source: https://www.baeldung.com/servlet-json-response
+            PrintWriter out = response.getWriter();
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            out.print(message);
+            out.flush();
+        } catch (IOException e) {
+            System.out.println("Error writing back to the client.");
+        }
     }
 
 }
