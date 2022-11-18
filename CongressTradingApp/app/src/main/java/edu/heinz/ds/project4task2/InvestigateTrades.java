@@ -9,6 +9,7 @@
 
 package edu.heinz.ds.project4task2;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -45,6 +46,7 @@ public class InvestigateTrades extends AppCompatActivity {
         });
     }
 
+    // sets the view for the user
     public void tradesReady(List<CongressTrades> trades) {
         // send trades to recycler view adapter
         RecyclerViewAdapter adapter;
@@ -55,7 +57,19 @@ public class InvestigateTrades extends AppCompatActivity {
 
         // set text view with trade count and brief summary
         TextView tv = (TextView)findViewById(R.id.numberOfTradesSummary);
+        tv.setTextColor(Color.BLACK); // return color back to black after red error
         tv.setText("Returned " + trades.size() + " trades for " + ((EditText)findViewById(R.id.searchTerm)).getText().toString());
+        }
+
+    // displays error message to user
+    public void displayError(String error) {
+        TextView tv = (TextView)findViewById(R.id.numberOfTradesSummary);
+        tv.setTextColor(Color.RED);
+        tv.setText(error);
+
+        // reset the recycler view and clears away old trades
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.tradeRecyclerView);
+        recyclerView.setAdapter(null);
     }
 
 }

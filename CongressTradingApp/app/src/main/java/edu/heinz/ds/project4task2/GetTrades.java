@@ -10,8 +10,6 @@
 package edu.heinz.ds.project4task2;
 
 import android.app.Activity;
-import android.widget.TextView;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -33,6 +31,7 @@ public class GetTrades {
     InvestigateTrades it = null;                    // To call back to UI thread
     String ticker = null;                           // Lookup trades for ticker value
     List<CongressTrades> tradeHistory = null;       // Return list of trades
+    String error = "";                                   // Error message if something goes ary
 
     /**
      * Searches for the trades of a specific ticker in a BackgroundTask thread.
@@ -43,7 +42,13 @@ public class GetTrades {
     public void search(String ticker, Activity activity, InvestigateTrades it) {
         this.it = it;
         this.ticker = ticker;
-        new BackgroundTask(activity).execute();
+
+        // catching invalid mobile user app input ... tickers should be alphabet only
+        if ((ticker != null) && (!ticker.equals("")) && (ticker.matches("^[a-zA-Z]*$"))) {
+            new BackgroundTask(activity).execute();
+        } else { // display error for user if invalid input is entered
+            it.displayError("Ticker invalid, enter a-z characters");
+        }
     }
 
     /**
@@ -143,6 +148,7 @@ public class GetTrades {
             catch (MalformedURLException e) {
                 System.out.println("URL Exception thrown" + e);
             } catch (IOException e) {
+                error = "Mobile Application Network Failure. Unable to reach server.";
                 System.out.println("IO Exception thrown" + e);
             } catch (Exception e) {
                 System.out.println("IO Exception thrown" + e);
@@ -154,9 +160,12 @@ public class GetTrades {
          * Send trades back to UI thread.
          */
         public void onPostExecute() {
-            it.tradesReady(tradeHistory);
-        }
 
+            if (error.equals("")) { // if all is well, we return the trade history for congresspeople
+                it.tradesReady(tradeHistory);
+            } else { // if there's a network error we handle it here
+                it.displayError(error);
+            }
     }
 
     /**
@@ -180,7 +189,7 @@ public class GetTrades {
      * @param conn
      * @return
      */
-    public static String getResponseBody(HttpURLConnection conn) {
+    public String getResponseBody(HttpURLConnection conn) {
         String responseText = "";
         try {
             String output = "";
@@ -196,5 +205,6 @@ public class GetTrades {
         return responseText;
     }
 
+    }
 }
 
